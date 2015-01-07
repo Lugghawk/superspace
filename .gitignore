@@ -1,0 +1,6 @@
+*.sdf
+*.opensdf
+/DerivedDataCache
+/Binaries
+/Intermediate
+/Saved
