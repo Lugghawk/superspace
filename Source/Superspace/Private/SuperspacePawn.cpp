@@ -4,6 +4,7 @@
 #include "SuperspacePawn.h"
 #include "SuperspaceProjectile.h"
 #include "TimerManager.h"
+#include "UnrealNetwork.h"
 
 const FName ASuperspacePawn::MoveForwardBinding("MoveForward");
 const FName ASuperspacePawn::MoveRightBinding("MoveRight");
@@ -67,7 +68,11 @@ void ASuperspacePawn::Tick(float DeltaSeconds)
 	const float ForwardValue = GetInputAxisValue(MoveForwardBinding);
 	const float RightValue = GetInputAxisValue(MoveRightBinding);
 
-	const FRotator NewRotation = GetActorRotation() + (FRotator(0.f, RotationRate * RightValue, 0.f)  * DeltaSeconds ) ;
+	if (RightValue != 0.f){
+		const FRotator NewRotation = GetActorRotation() + (FRotator(0.f, RotationRate * RightValue, 0.f)  * DeltaSeconds);
+		SetFacingDirection(NewRotation);
+	}
+
 
 	//Acceleration is always in forward vector's direction
 	const FVector AccelerationDirection = GetActorForwardVector() / GetActorForwardVector().Size();
@@ -75,13 +80,12 @@ void ASuperspacePawn::Tick(float DeltaSeconds)
 	if (ForwardValue != 0.f){
 		//Accelerate in the given direction.
 		CurrentVelocity += ForwardValue * AccelerationRate * DeltaSeconds * AccelerationDirection;
+		SetCurrentVelocity(CurrentVelocity);
 	}
 	CurrentVelocity = CurrentVelocity.ClampMaxSize(MaxMoveSpeed);
-	UE_LOG(LogTemp, Warning, TEXT("Max Speed: %f"), MaxMoveSpeed);
-	UE_LOG(LogTemp, Warning, TEXT("Current Speed: %f"), CurrentVelocity.Size());
-	
+
 	FHitResult Hit(1.f);
-	RootComponent->MoveComponent(CurrentVelocity, NewRotation, true, &Hit);
+	RootComponent->MoveComponent(CurrentVelocity, GetActorRotation(), true, &Hit);
 	if (Hit.IsValidBlockingHit())
 	{
 		
@@ -91,8 +95,36 @@ void ASuperspacePawn::Tick(float DeltaSeconds)
 
 	const FVector FireDirection = GetActorForwardVector();
 
-	// Try and fire a shot
-	//FireShot(FireDirection);
+}
+
+void ASuperspacePawn::SetFacingDirection(FRotator Rotation){
+	SetActorRotation(Rotation);
+	if (Role < ROLE_Authority){
+		ServerSetFacingDirection(Rotation);
+	}
+}
+
+bool ASuperspacePawn::ServerSetFacingDirection_Validate(FRotator Rotation){
+	return true;
+}
+
+void ASuperspacePawn::ServerSetFacingDirection_Implementation(FRotator Rotation){
+	SetFacingDirection(Rotation);
+}
+
+void ASuperspacePawn::SetCurrentVelocity(FVector Velocity){
+	CurrentVelocity = Velocity; 
+	if (Role < ROLE_Authority){
+		ServerSetCurrentVelocity(Velocity);
+	}
+}
+
+bool ASuperspacePawn::ServerSetCurrentVelocity_Validate(FVector Velocity){
+	return true;
+}
+
+void ASuperspacePawn::ServerSetCurrentVelocity_Implementation(FVector Velocity){
+	SetCurrentVelocity(Velocity);
 }
 
 FVector ASuperspacePawn::ReflectVector(FVector InitialDirection, FVector Normal){
@@ -102,6 +134,19 @@ FVector ASuperspacePawn::ReflectVector(FVector InitialDirection, FVector Normal)
 
 void ASuperspacePawn::FireShot(FVector FireDirection)
 {
+	
+	if (Role < ROLE_Authority){
+		ServerFireShot(FireDirection);
+	}
+	else{
+		MultiCastFireShot(FireDirection);
+		LocalFireShot(FireDirection);
+	}
+		
+}
+
+void ASuperspacePawn::LocalFireShot(FVector FireDirection){
+
 	// If we it's ok to fire again
 	if (bCanFire == true)
 	{
@@ -119,7 +164,6 @@ void ASuperspacePawn::FireShot(FVector FireDirection)
 				World->SpawnActor<ASuperspaceProjectile>(SpawnLocation, FireRotation);
 			}
 
-			bCanFire = false;
 			World->GetTimerManager().SetTimer(this, &ASuperspacePawn::ShotTimerExpired, FireRate);
 
 			// try and play the sound if specified
@@ -131,6 +175,30 @@ void ASuperspacePawn::FireShot(FVector FireDirection)
 			bCanFire = false;
 		}
 	}
+}
+
+bool ASuperspacePawn::ServerFireShot_Validate(FVector FireDirection){
+	return true;
+}
+
+void ASuperspacePawn::ServerFireShot_Implementation(FVector FireDirection){
+	FireShot(FireDirection);
+}
+
+bool ASuperspacePawn::MultiCastFireShot_Validate(FVector FireDirection){
+	return true;
+}
+
+void ASuperspacePawn::MultiCastFireShot_Implementation(FVector FireDirection){
+	LocalFireShot(FireDirection);
+}
+
+void ASuperspacePawn::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	// Replicate to everyone
+	DOREPLIFETIME(ASuperspacePawn, CurrentVelocity);
+	DOREPLIFETIME(ASuperspacePawn, bCanFire);
 }
 
 void ASuperspacePawn::ShotTimerExpired()

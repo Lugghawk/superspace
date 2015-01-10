@@ -2,6 +2,7 @@
 #pragma once
 
 #include "GameFramework/Character.h"
+#include "UnrealNetwork.h"
 #include "SuperspacePawn.generated.h"
 
 UCLASS(Blueprintable)
@@ -53,8 +54,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 	// End Actor Interface
 
-	/* Fire a shot in the specified direction */
-	void FireShot(FVector FireDirection);
+	
 
 	/* Handler for the fire timer expiry */
 	void ShotTimerExpired();
@@ -68,12 +68,37 @@ public:
 	static const FName MoveRightBinding;
 	static const FName FireBinding;
 
+
+
+	/* Network replicated stuff */
+	void SetCurrentVelocity(FVector Velocity);
+
+	UFUNCTION(reliable, server, WithValidation)
+	void ServerSetCurrentVelocity(FVector Velocity);
+
+	void SetFacingDirection(FRotator Rotation);
+
+	UFUNCTION(reliable, server, WithValidation)
+	void ServerSetFacingDirection(FRotator Rotation);
+
+	/* Fire a shot in the specified direction */
+	void LocalFireShot(FVector FireDirection);
+	void FireShot(FVector FireDirection);
+
+	UFUNCTION(reliable, server, WithValidation)
+	void ServerFireShot(FVector FireDirection);
+
+	UFUNCTION(reliable, NetMulticast, WithValidation)
+	void MultiCastFireShot(FVector FireDirection);
+
 private:
 
 	/* Flag to control firing  */
+	UPROPERTY(Replicated)
 	uint32 bCanFire : 1;
 
 	/* Current speed */
+	UPROPERTY(Replicated)
 	FVector CurrentVelocity;
 
 public:
