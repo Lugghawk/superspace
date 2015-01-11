@@ -54,7 +54,6 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 	// End Actor Interface
 
-	
 
 	/* Handler for the fire timer expiry */
 	void ShotTimerExpired();
@@ -67,6 +66,7 @@ public:
 	static const FName MoveForwardBinding;
 	static const FName MoveRightBinding;
 	static const FName FireBinding;
+
 
 
 
@@ -91,6 +91,13 @@ public:
 	UFUNCTION(reliable, NetMulticast, WithValidation)
 	void MultiCastFireShot(FVector FireDirection);
 
+	UFUNCTION(reliable, server, WithValidation)
+	void DoDamage(int32 Damage);
+
+	UFUNCTION(reliable, NetMultiCast, WithValidation)
+	void Die();
+	
+
 private:
 
 	/* Flag to control firing  */
@@ -100,6 +107,9 @@ private:
 	/* Current speed */
 	UPROPERTY(Replicated)
 	FVector CurrentVelocity;
+
+	UPROPERTY(Replicated)
+	int32 Health;
 
 public:
 	/** Returns ShipMeshComponent subobject **/

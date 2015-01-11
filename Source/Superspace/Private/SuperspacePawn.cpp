@@ -46,6 +46,7 @@ ASuperspacePawn::ASuperspacePawn(const FObjectInitializer& ObjectInitializer)
 	GunOffset = FVector(90.f, 0.f, 0.f);
 	FireRate = 0.1f;
 	bCanFire = true;
+	Health = 10;
 }
 
 void ASuperspacePawn::SetupPlayerInputComponent(class UInputComponent* InputComponent)
@@ -198,6 +199,7 @@ void ASuperspacePawn::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & O
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	// Replicate to everyone
 	DOREPLIFETIME(ASuperspacePawn, CurrentVelocity);
+	DOREPLIFETIME(ASuperspacePawn, Health);
 	DOREPLIFETIME(ASuperspacePawn, bCanFire);
 }
 
@@ -206,3 +208,22 @@ void ASuperspacePawn::ShotTimerExpired()
 	bCanFire = true;
 }
 
+bool ASuperspacePawn::DoDamage_Validate(int32 Damage){
+	return true;
+}
+
+void ASuperspacePawn::DoDamage_Implementation(int32 Damage){
+	Health -= Damage;
+	if (Health < 1){
+		Die();
+	}
+}
+
+bool ASuperspacePawn::Die_Validate(){
+	return true;
+}
+
+void ASuperspacePawn::Die_Implementation(){
+	//Play some death sound and explosion stuff here.
+	Destroy();
+}

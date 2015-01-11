@@ -1,6 +1,7 @@
 // Copyright 1998-2014 Epic Games, Inc. All Rights Reserve
 
 #include "Superspace.h"
+#include "SuperspacePawn.h"
 #include "SuperspaceProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 
@@ -29,15 +30,26 @@ ASuperspaceProjectile::ASuperspaceProjectile(const FObjectInitializer& ObjectIni
 
 	// Die after 3 seconds by default
 	InitialLifeSpan = 3.0f;
+	Damage = 10;
 }
 
 void ASuperspaceProjectile::OnHit(AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	// Only add impulse and destroy projectile if we hit a physics
-	if ((OtherActor != NULL) && (OtherActor != this) && (OtherComp != NULL) && OtherComp->IsSimulatingPhysics())
+	/*if ((OtherActor != NULL) && (OtherActor != this) && (OtherComp != NULL) && OtherComp->IsSimulatingPhysics())
 	{
 		OtherComp->AddImpulseAtLocation(GetVelocity() * 20.0f, GetActorLocation());
+	}*/
+	if (OtherActor != NULL){
+		ASuperspacePawn* p = Cast<ASuperspacePawn>(OtherActor);
+		if (p){
+			p->DoDamage(this->GetDamage());
+		}
 	}
 
 	Destroy();
+}
+
+int32 ASuperspaceProjectile::GetDamage(){
+	return Damage;
 }

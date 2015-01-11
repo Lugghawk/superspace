@@ -20,7 +20,13 @@ class ASuperspaceProjectile : public AActor
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	UProjectileMovementComponent* ProjectileMovement;
 
+	UPROPERTY(EditAnywhere, Category = Damage)
+	int32 Damage;
+
 public:
+
+	int32 GetDamage();
+
 	ASuperspaceProjectile(const FObjectInitializer& ObjectInitializer);
 
 	/** Function to handle the projectile hitting something */
