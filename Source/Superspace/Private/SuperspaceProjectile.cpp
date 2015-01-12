@@ -35,15 +35,10 @@ ASuperspaceProjectile::ASuperspaceProjectile(const FObjectInitializer& ObjectIni
 
 void ASuperspaceProjectile::OnHit(AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	// Only add impulse and destroy projectile if we hit a physics
-	/*if ((OtherActor != NULL) && (OtherActor != this) && (OtherComp != NULL) && OtherComp->IsSimulatingPhysics())
-	{
-		OtherComp->AddImpulseAtLocation(GetVelocity() * 20.0f, GetActorLocation());
-	}*/
 	if (OtherActor != NULL){
 		ASuperspacePawn* p = Cast<ASuperspacePawn>(OtherActor);
 		if (p){
-			p->DoDamage(this->GetDamage());
+			p->DoDamage(Instigator,this->GetDamage());
 		}
 	}
 

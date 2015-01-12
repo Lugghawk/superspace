@@ -47,6 +47,8 @@ ASuperspacePawn::ASuperspacePawn(const FObjectInitializer& ObjectInitializer)
 	FireRate = 0.1f;
 	bCanFire = true;
 	Health = 10;
+
+	
 }
 
 void ASuperspacePawn::SetupPlayerInputComponent(class UInputComponent* InputComponent)
@@ -61,6 +63,9 @@ void ASuperspacePawn::SetupPlayerInputComponent(class UInputComponent* InputComp
 
 void ASuperspacePawn::Shoot(){
 	FireShot(GetActorForwardVector());
+}
+void ASuperspacePawn::BeginPlay(){
+	SpawnLocation = GetActorLocation();
 }
 
 void ASuperspacePawn::Tick(float DeltaSeconds)
@@ -95,6 +100,8 @@ void ASuperspacePawn::Tick(float DeltaSeconds)
 	}
 
 	const FVector FireDirection = GetActorForwardVector();
+
+	UE_LOG(LogTemp, Log, TEXT("Location: %s"), *GetActorLocation().ToString());
 
 }
 
@@ -162,7 +169,8 @@ void ASuperspacePawn::LocalFireShot(FVector FireDirection){
 			if (World != NULL)
 			{
 				// spawn the projectile
-				World->SpawnActor<ASuperspaceProjectile>(SpawnLocation, FireRotation);
+				ASuperspaceProjectile* projectile = World->SpawnActor<ASuperspaceProjectile>(SpawnLocation, FireRotation);
+				projectile->Instigator = this;
 			}
 
 			World->GetTimerManager().SetTimer(this, &ASuperspacePawn::ShotTimerExpired, FireRate);
@@ -208,13 +216,22 @@ void ASuperspacePawn::ShotTimerExpired()
 	bCanFire = true;
 }
 
-bool ASuperspacePawn::DoDamage_Validate(int32 Damage){
+bool ASuperspacePawn::DoDamage_Validate(APawn* Dealer, int32 Damage){
 	return true;
 }
 
-void ASuperspacePawn::DoDamage_Implementation(int32 Damage){
+void ASuperspacePawn::DoDamage_Implementation(APawn* Dealer, int32 Damage){
 	Health -= Damage;
 	if (Health < 1){
+		UWorld* const World = GetWorld();
+		if (World != NULL)
+		{
+			// spawn the new pawn
+			ASuperspacePawn* pawn = World->SpawnActor<ASuperspacePawn>(SpawnLocation, GetActorRotation());
+			AController* controller = GetController();
+			controller->Possess(pawn);
+			
+		}
 		Die();
 	}
 }

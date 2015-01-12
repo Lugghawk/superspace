@@ -52,6 +52,7 @@ public:
 	// Begin Actor Interface
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
+	virtual void BeginPlay() override;
 	// End Actor Interface
 
 
@@ -92,10 +93,13 @@ public:
 	void MultiCastFireShot(FVector FireDirection);
 
 	UFUNCTION(reliable, server, WithValidation)
-	void DoDamage(int32 Damage);
+	void DoDamage(APawn* Dealer,int32 Damage);
 
 	UFUNCTION(reliable, NetMultiCast, WithValidation)
 	void Die();
+
+
+	
 	
 
 private:
@@ -110,6 +114,8 @@ private:
 
 	UPROPERTY(Replicated)
 	int32 Health;
+
+	FVector SpawnLocation;
 
 public:
 	/** Returns ShipMeshComponent subobject **/
