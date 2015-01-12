@@ -95,12 +95,6 @@ public:
 	UFUNCTION(reliable, server, WithValidation)
 	void DoDamage(APawn* Dealer,int32 Damage);
 
-	UFUNCTION(reliable, NetMultiCast, WithValidation)
-	void Die();
-
-
-	
-	
 
 private:
 

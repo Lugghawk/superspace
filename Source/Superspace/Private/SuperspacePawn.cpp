@@ -3,6 +3,7 @@
 #include "Superspace.h"
 #include "SuperspacePawn.h"
 #include "SuperspaceProjectile.h"
+#include "SuperspaceGameMode.h"
 #include "TimerManager.h"
 #include "UnrealNetwork.h"
 
@@ -227,20 +228,14 @@ void ASuperspacePawn::DoDamage_Implementation(APawn* Dealer, int32 Damage){
 		if (World != NULL)
 		{
 			// spawn the new pawn
-			ASuperspacePawn* pawn = World->SpawnActor<ASuperspacePawn>(SpawnLocation, GetActorRotation());
+			/*ASuperspacePawn* pawn = World->SpawnActor<ASuperspacePawn>(SpawnLocation, GetActorRotation());
 			AController* controller = GetController();
-			controller->Possess(pawn);
-			
+			controller->Possess(pawn);*/
+
+			ASuperspaceGameMode* GameMode = World->GetAuthGameMode<ASuperspaceGameMode>();
+			GameMode->KillPawn(this);
+
 		}
-		Die();
 	}
 }
 
-bool ASuperspacePawn::Die_Validate(){
-	return true;
-}
-
-void ASuperspacePawn::Die_Implementation(){
-	//Play some death sound and explosion stuff here.
-	Destroy();
-}
