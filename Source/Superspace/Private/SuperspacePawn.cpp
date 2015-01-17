@@ -48,7 +48,6 @@ ASuperspacePawn::ASuperspacePawn(const FObjectInitializer& ObjectInitializer)
 	FireRate = 0.1f;
 	bCanFire = true;
 	Health = 10;
-
 	
 }
 
@@ -233,7 +232,7 @@ void ASuperspacePawn::DoDamage_Implementation(APawn* Dealer, int32 Damage){
 			controller->Possess(pawn);*/
 
 			ASuperspaceGameMode* GameMode = World->GetAuthGameMode<ASuperspaceGameMode>();
-			GameMode->KillPawn(this);
+			GameMode->KillPawn(Dealer, this);
 
 		}
 	}

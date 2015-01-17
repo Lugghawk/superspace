@@ -15,7 +15,7 @@ public:
 	ASuperspaceGameMode(const FObjectInitializer& ObjectInitializer);
 
 	UFUNCTION(reliable, server, WithValidation)
-	void KillPawn(APawn* pawn);
+	void KillPawn(APawn* Dealer, APawn* PawnToKill);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category= "Spawn")
 	FVector SpawnLocation;
