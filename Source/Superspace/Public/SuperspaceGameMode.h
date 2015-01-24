@@ -18,7 +18,10 @@ public:
 	void KillPawn(APawn* Dealer, APawn* PawnToKill);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category= "Spawn")
-	FVector SpawnLocation;
+	TArray<FVector> SpawnLocations;
+
+	UFUNCTION(BlueprintCallable, Category = "Spawn")
+	FVector GetRandomSpawnLocation();
 };
 
 

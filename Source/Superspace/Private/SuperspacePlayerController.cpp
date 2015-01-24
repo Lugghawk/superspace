@@ -4,6 +4,6 @@
 #include "SuperspacePlayerController.h"
 
 
-
-void ASuperspacePlayerController::BeginPlay(){
+void ASuperspacePlayerController::DoLog(){
+	UE_LOG(LogTemp, Warning, TEXT("Im a log"));
 }

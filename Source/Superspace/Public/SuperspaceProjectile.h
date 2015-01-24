@@ -20,10 +20,12 @@ class ASuperspaceProjectile : public AActor
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	UProjectileMovementComponent* ProjectileMovement;
 
-	UPROPERTY(EditAnywhere, Category = Damage)
-	int32 Damage;
+	
 
 public:
+
+	UPROPERTY(EditAnywhere, Category = Damage)
+	int32 Damage;
 
 	int32 GetDamage();
 

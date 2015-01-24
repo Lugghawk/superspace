@@ -14,5 +14,6 @@ class SUPERSPACE_API ASuperspacePlayerController : public APlayerController
 	GENERATED_BODY()
 
 
-	void BeginPlay() override;
+public:
+	void DoLog();
 };

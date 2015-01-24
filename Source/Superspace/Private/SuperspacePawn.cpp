@@ -3,6 +3,7 @@
 #include "Superspace.h"
 #include "SuperspacePawn.h"
 #include "SuperspaceProjectile.h"
+#include "SuperspacePlayerController.h"
 #include "SuperspaceGameMode.h"
 #include "TimerManager.h"
 #include "UnrealNetwork.h"
@@ -101,8 +102,6 @@ void ASuperspacePawn::Tick(float DeltaSeconds)
 
 	const FVector FireDirection = GetActorForwardVector();
 
-	UE_LOG(LogTemp, Log, TEXT("Location: %s"), *GetActorLocation().ToString());
-
 }
 
 void ASuperspacePawn::SetFacingDirection(FRotator Rotation){
@@ -143,12 +142,12 @@ FVector ASuperspacePawn::ReflectVector(FVector InitialDirection, FVector Normal)
 void ASuperspacePawn::FireShot(FVector FireDirection)
 {
 	
+	
 	if (Role < ROLE_Authority){
 		ServerFireShot(FireDirection);
 	}
 	else{
 		MultiCastFireShot(FireDirection);
-		LocalFireShot(FireDirection);
 	}
 		
 }

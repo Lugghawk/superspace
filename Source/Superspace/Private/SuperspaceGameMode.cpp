@@ -11,10 +11,9 @@ ASuperspaceGameMode::ASuperspaceGameMode(const FObjectInitializer& ObjectInitial
 {
 	// set default pawn class to our character class
 	DefaultPawnClass = ASuperspacePawn::StaticClass();
-
 	GameStateClass = ASuperspaceGameState::StaticClass();
-	static ConstructorHelpers::FObjectFinder<UBlueprint> PlayerControllerBP(TEXT("Blueprint'/Game/Blueprint/Controller/SSPlayerController.SSPlayerController'"));
-	if (PlayerControllerBP.Object != NULL)	PlayerControllerClass = (UClass*)PlayerControllerBP.Object->GeneratedClass;
+	static ConstructorHelpers::FObjectFinder<UClass> PlayerControllerBP(TEXT("Blueprint'/Game/Blueprint/Controller/SSPlayerController.SSPlayerController_C'"));
+	if (PlayerControllerBP.Object != NULL)	PlayerControllerClass = PlayerControllerBP.Object;
 }
 
 /*
@@ -33,9 +32,14 @@ void ASuperspaceGameMode::KillPawn_Implementation(APawn* Dealer, APawn* PawnToKi
 	UWorld* const World = GetWorld();
 	if (World != NULL)
 	{
-		ASuperspacePawn* NewPawn = World->SpawnActor<ASuperspacePawn>(SpawnLocation, FRotator(0.f,0.f,0.f));
+		ASuperspacePawn* NewPawn = World->SpawnActor<ASuperspacePawn>(GetRandomSpawnLocation(), FRotator(0.f,0.f,0.f));
 		Controller->Possess(NewPawn);
 	}
 	Dealer->GetController()->PlayerState->Score++;
+	
+}
 
+FVector ASuperspaceGameMode::GetRandomSpawnLocation(){
+	int32 idx = FMath::RandRange(0, SpawnLocations.Num() - 1);
+	return SpawnLocations[idx];
 }
