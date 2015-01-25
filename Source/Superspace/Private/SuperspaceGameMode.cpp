@@ -33,7 +33,9 @@ void ASuperspaceGameMode::KillPawn_Implementation(APawn* Dealer, APawn* PawnToKi
 	if (World != NULL)
 	{
 		ASuperspacePawn* NewPawn = World->SpawnActor<ASuperspacePawn>(GetRandomSpawnLocation(), FRotator(0.f,0.f,0.f));
+		UE_LOG(LogTemp, Warning, TEXT("Spawning New Player %d"), NewPawn->PlayerNumber);
 		Controller->Possess(NewPawn);
+		NewPawn->SetOwner(Controller);
 	}
 	Dealer->GetController()->PlayerState->Score++;
 	

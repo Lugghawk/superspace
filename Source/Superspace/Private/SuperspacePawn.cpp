@@ -20,6 +20,7 @@ ASuperspacePawn::ASuperspacePawn(const FObjectInitializer& ObjectInitializer)
 {	
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> ShipMesh(TEXT("/Game/Meshes/UFO.UFO"));
 	// Create the mesh component
+	bReplicates = true;
 	ShipMeshComponent = ObjectInitializer.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("ShipMesh"));
 	RootComponent = ShipMeshComponent;
 	ShipMeshComponent->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
@@ -53,7 +54,13 @@ ASuperspacePawn::ASuperspacePawn(const FObjectInitializer& ObjectInitializer)
 	bCanFire = true;
 	Health = 10;
 	PlayerNumber = currentPlayer++;
-	UE_LOG(LogTemp, Warning, TEXT("player %d spawned"), PlayerNumber);
+	if (Role < ROLE_Authority){
+		UE_LOG(LogTemp, Warning, TEXT("client: player %d spawned"), PlayerNumber);
+	}
+	else{
+		UE_LOG(LogTemp, Warning, TEXT("server: player %d spawned"), PlayerNumber);
+	}
+	
 	
 }
 
@@ -99,6 +106,7 @@ void ASuperspacePawn::Tick(float DeltaSeconds)
 	}
 	if (ForwardValue || StrafeValue){
 		//Accelerate in the given direction.
+		UE_LOG(LogTemp, Warning, TEXT("Moving - Forward: %f. Strafe: %f"), ForwardValue, StrafeValue);
 		CurrentVelocity += ForwardValue * AccelerationRate * DeltaSeconds * AccelerationDirection;
 		CurrentVelocity += StrafeValue * AccelerationRate * DeltaSeconds * StrafeDirection;
 		SetCurrentVelocity(CurrentVelocity);
@@ -240,11 +248,6 @@ void ASuperspacePawn::DoDamage_Implementation(APawn* Dealer, int32 Damage){
 		UWorld* const World = GetWorld();
 		if (World != NULL)
 		{
-			// spawn the new pawn
-			/*ASuperspacePawn* pawn = World->SpawnActor<ASuperspacePawn>(SpawnLocation, GetActorRotation());
-			AController* controller = GetController();
-			controller->Possess(pawn);*/
-
 			ASuperspaceGameMode* GameMode = World->GetAuthGameMode<ASuperspaceGameMode>();
 			GameMode->KillPawn(Dealer, this);
 
