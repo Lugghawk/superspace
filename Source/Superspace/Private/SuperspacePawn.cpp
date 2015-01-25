@@ -8,8 +8,11 @@
 #include "TimerManager.h"
 #include "UnrealNetwork.h"
 
+int32 currentPlayer = 0;
+
 const FName ASuperspacePawn::MoveForwardBinding("MoveForward");
 const FName ASuperspacePawn::MoveRightBinding("MoveRight");
+const FName ASuperspacePawn::StrafeBinding("Strafe");
 const FName ASuperspacePawn::FireBinding("Fire");
 
 ASuperspacePawn::ASuperspacePawn(const FObjectInitializer& ObjectInitializer)
@@ -41,7 +44,7 @@ ASuperspacePawn::ASuperspacePawn(const FObjectInitializer& ObjectInitializer)
 
 	// Movement
 	MaxMoveSpeed = 10.0f;
-	AccelerationRate = 10.f;
+	AccelerationRate = 100.f;
 	RotationRate = 120.f;
 	CurrentVelocity = FVector(0.f, 0.f, 0.f);
 	// Weapon
@@ -49,6 +52,8 @@ ASuperspacePawn::ASuperspacePawn(const FObjectInitializer& ObjectInitializer)
 	FireRate = 0.1f;
 	bCanFire = true;
 	Health = 10;
+	PlayerNumber = currentPlayer++;
+	UE_LOG(LogTemp, Warning, TEXT("player %d spawned"), PlayerNumber);
 	
 }
 
@@ -59,10 +64,12 @@ void ASuperspacePawn::SetupPlayerInputComponent(class UInputComponent* InputComp
 	// set up gameplay key bindings
 	InputComponent->BindAxis(MoveForwardBinding);
 	InputComponent->BindAxis(MoveRightBinding);
+	InputComponent->BindAxis(StrafeBinding);
 	InputComponent->BindAction(FireBinding, IE_Pressed, this, &ASuperspacePawn::Shoot);
 }
 
 void ASuperspacePawn::Shoot(){
+	UE_LOG(LogTemp, Warning, TEXT("player %d firing"), PlayerNumber);
 	FireShot(GetActorForwardVector());
 }
 void ASuperspacePawn::BeginPlay(){
@@ -74,6 +81,7 @@ void ASuperspacePawn::Tick(float DeltaSeconds)
 	// Find movement direction
 	const float ForwardValue = GetInputAxisValue(MoveForwardBinding);
 	const float RightValue = GetInputAxisValue(MoveRightBinding);
+	const float StrafeValue = GetInputAxisValue(StrafeBinding);
 
 	if (RightValue != 0.f){
 		const FRotator NewRotation = GetActorRotation() + (FRotator(0.f, RotationRate * RightValue, 0.f)  * DeltaSeconds);
@@ -83,10 +91,16 @@ void ASuperspacePawn::Tick(float DeltaSeconds)
 
 	//Acceleration is always in forward vector's direction
 	const FVector AccelerationDirection = GetActorForwardVector() / GetActorForwardVector().Size();
-
-	if (ForwardValue != 0.f){
+	FVector StrafeDirection = AccelerationDirection;
+	{
+		const float temp = StrafeDirection.X;
+		StrafeDirection.X = StrafeDirection.Y;
+		StrafeDirection.Y = -temp;
+	}
+	if (ForwardValue || StrafeValue){
 		//Accelerate in the given direction.
 		CurrentVelocity += ForwardValue * AccelerationRate * DeltaSeconds * AccelerationDirection;
+		CurrentVelocity += StrafeValue * AccelerationRate * DeltaSeconds * StrafeDirection;
 		SetCurrentVelocity(CurrentVelocity);
 	}
 	CurrentVelocity = CurrentVelocity.ClampMaxSize(MaxMoveSpeed);
@@ -220,6 +234,7 @@ bool ASuperspacePawn::DoDamage_Validate(APawn* Dealer, int32 Damage){
 }
 
 void ASuperspacePawn::DoDamage_Implementation(APawn* Dealer, int32 Damage){
+	UE_LOG(LogTemp, Warning, TEXT("player %d damaged"), PlayerNumber);
 	Health -= Damage;
 	if (Health < 1){
 		UWorld* const World = GetWorld();
